@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { GROUPS, SERVICES, TRUST } from '@/lib/services';
 import { SITE, waLink } from '@/lib/config';
 import { ServiceIcon, MiscIcon, WhatsAppIcon } from '@/components/Icons';
+import HeroTech from '@/components/HeroTech';
 
 const STEPS = [
   ['Tell us what you need', 'Pick a service and describe your idea in the request form. It takes about two minutes.'],
@@ -22,6 +23,7 @@ export default function Home() {
   return (
     <>
       <section className="hero">
+        <HeroTech />
         <div className="wrap hero-grid">
           <div className="hero-copy">
             <p className="hand">Your vision. Our code.</p>
