@@ -625,3 +625,5 @@ dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
     scroll-behavior: auto !important;
   }
 }
+   .wall { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem; }
+   .tile { font-size: 0.74rem; padding: 0.6rem; border-radius: 14px; }
