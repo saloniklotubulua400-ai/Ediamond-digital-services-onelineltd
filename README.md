@@ -1,47 +1,38 @@
-# Ediamond Ltd website (Next.js)
+# Ediamond website: switch from JSON files to Supabase
 
-## Run it (one command)
+This upgrade replaces `lib/store.js` and `lib/users.js` so requests and customer accounts
+are saved in a Supabase (PostgreSQL) database instead of `data/*.json`.
+No page or component changes. All function names and return shapes are the same.
 
-    npm install && npm run dev
+## Steps
 
-Open http://localhost:3000
+1. Create a project at https://supabase.com (New project). Save the database password.
+2. Open **SQL Editor > New query**, paste the contents of `supabase/schema.sql`, press **Run**.
+3. Open **Settings > API Keys**. Copy the **Project URL** and a **Secret key** (`sb_secret_...`;
+   if none exists, create new API keys). Add to the project's `.env.local`:
 
-## Pages
+       SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
+       SUPABASE_SECRET_KEY=sb_secret_xxxxxxxxxxxx
 
-| URL | What it is |
-|---|---|
-| `/` | Home: hero, services overview, how it works, contact call-to-action |
-| `/services` | All 19 services grouped by category |
-| `/services/[slug]` | One page per service (e.g. `/services/web-development`) |
-| `/request` | Customer request form (`/request?service=api-integration` pre-selects a service) |
-| `/contact` | WhatsApp and request links |
-| `/signup` and `/login` | Customer accounts |
-| `/account` | Customer's own requests with a progress tracker (Received, In progress, Completed) |
-| `/account/requests/[id]` | One request with its status and a WhatsApp button |
-| `/admin/login` | Staff sign in (separate from customer accounts) |
-| `/admin` | Dashboard: see, search and filter customer requests, download CSV |
-| `/admin/requests/[id]` | One request: contact the customer, change status, add notes, delete |
+4. From inside the project folder (the one with package.json), run ONE command
+   (it backs up the old files, copies the new ones and installs the package):
 
-## Before you go live
+       mkdir -p lib/json-backup && cp lib/store.js lib/users.js lib/json-backup/ && unzip -o ../ediamond-supabase-upgrade.zip && npm install @supabase/supabase-js
 
-1. Open `.env.local` and change `ADMIN_PASSWORD` and `AUTH_SECRET`, then restart.
-2. Check the WhatsApp number in `lib/config.js` (currently 0108 770 168 as on the poster).
-3. Requests are saved in `data/requests.json` and customer accounts in `data/users.json`. This works on a VPS or your own computer.
-   On Vercel the disk is read-only, so replace the functions in `lib/store.js` with a database
-   (PostgreSQL, Supabase, MongoDB, etc.): `lib/store.js` for requests and `lib/users.js` for accounts.
-4. Login cookies are marked Secure in production, so serve the live site over HTTPS.
+5. Optional, only if you already have real data in `data/*.json`:
 
-## How customers track progress
+       node --env-file=.env.local scripts/migrate-json-to-supabase.mjs
 
-A customer signs up, then sends requests while logged in. Each request is linked to their account.
-When you change its status in `/admin`, they see it update in `/account`. Requests sent without an account
-still reach your dashboard, but the customer cannot track them.
+   then run the SQL line it prints in the Supabase SQL Editor.
+6. `npm run dev`, send a test request, and check **Table Editor > requests** in Supabase.
 
-## Edit content
+## Safety rules
 
-- Services, descriptions and the lists of what you build: `lib/services.js`
-- Phone number and company text: `lib/config.js`
-- Colours and fonts: top of `app/globals.css`
-- Logo: `components/Logo.js` (swap the SVG for your own logo file in `public/` if you like)
-# Ediamond-digital-services-onelineltd
-# Ediamond-digital-services-onelineltd
+- The secret key bypasses all database security. Keep it only in `.env.local` and in your
+  hosting provider's environment settings. Never prefix it with `NEXT_PUBLIC_`, never commit it.
+- If it ever leaks, create a new secret key in Supabase and delete the old one.
+- Row Level Security is switched on for both tables with no public policies, so the public
+  (publishable) key cannot read any customer data.
+- Supabase returns at most 1000 rows per query. If you ever pass 1000 requests, add paging
+  to `listRequests()` in `lib/store.js`.
+- If you add a new status in `lib/store.js`, nothing changes in the database (status is plain text).
