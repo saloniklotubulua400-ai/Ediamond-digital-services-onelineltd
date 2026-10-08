@@ -1,0 +1,7 @@
+node_modules
+.next
+.env.local
+data/requests.json
+data/requests.json.tmp
+data/users.json
+data/users.json.tmp
