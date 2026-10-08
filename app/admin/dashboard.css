@@ -1,0 +1,282 @@
+/* Scoped to .dash so it won't clash with your global styles.
+   Your existing .btn, .badge, .alert, .panel, .linklike classes are reused. */
+
+.dash {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(16px, 3vw, 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.dash .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Header */
+.dash-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.dash-head h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+  line-height: 1.15;
+}
+.dash-sub {
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 0.9rem;
+}
+
+/* Status tabs: one scrollable row on phones, wrapping on desktop */
+.dash-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+.dash-tabs a {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  background: #fff;
+  color: #344054;
+  font-size: 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.dash-tabs a b {
+  font-weight: 600;
+  min-width: 1.4em;
+  text-align: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #f2f4f7;
+  font-size: 0.8rem;
+}
+.dash-tabs a:hover {
+  border-color: #98a2b3;
+}
+.dash-tabs a.on {
+  background: #101828;
+  border-color: #101828;
+  color: #fff;
+}
+.dash-tabs a.on b {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.dash-tabs a:focus-visible,
+.dash-filters :is(input, select, button):focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Filters */
+.dash-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 190px 160px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #eaecf0;
+  border-radius: 12px;
+}
+.dash-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  color: #667085;
+  min-width: 0;
+}
+.dash-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 10px 0;
+  font: inherit;
+  color: #101828;
+}
+.dash-search:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+.dash-filters select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  color: #101828;
+}
+.dash-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+/* Table */
+.dash-table {
+  background: #fff;
+  border: 1px solid #eaecf0;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+.dash-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.dash-table th {
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #667085;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid #eaecf0;
+  white-space: nowrap;
+}
+.dash-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f2f4f7;
+  vertical-align: middle;
+}
+.dash-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.dash-table tbody tr:hover {
+  background: #fafbfc;
+}
+.col-ref a {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.col-customer strong,
+.col-customer small {
+  display: block;
+}
+.col-customer small {
+  color: #667085;
+  margin-top: 2px;
+}
+.col-date {
+  white-space: nowrap;
+  color: #475467;
+}
+.col-action {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* Tablet: hide the redundant Open button, the ref is already a link */
+@media (max-width: 960px) {
+  .dash-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dash-search {
+    grid-column: 1 / -1;
+  }
+  .dash-filter-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Phone: each row becomes a card */
+@media (max-width: 720px) {
+  .dash-table {
+    background: transparent;
+    border: 0;
+    overflow: visible;
+  }
+  .dash-table thead {
+    display: none;
+  }
+  .dash-table table,
+  .dash-table tbody {
+    display: block;
+  }
+  .dash-table tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: #fff;
+    border: 1px solid #eaecf0;
+    border-radius: 12px;
+  }
+  .dash-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  .dash-table td[data-label='Customer'] {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .dash-table td[data-label='Status'] {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .dash-table td[data-label='Service'] {
+    grid-column: 1 / -1;
+    margin-top: 6px;
+  }
+  .dash-table td[data-label='Ref'],
+  .dash-table td[data-label='Received'] {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #667085;
+  }
+  .dash-table td[data-label='Ref']::before,
+  .dash-table td[data-label='Received']::before {
+    content: attr(data-label) ':';
+  }
+  .col-action {
+    grid-column: 1 / -1;
+    width: auto;
+    text-align: left;
+    margin-top: 10px;
+  }
+  .col-action .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 520px) {
+  .dash-filters {
+    grid-template-columns: 1fr;
+  }
+}
