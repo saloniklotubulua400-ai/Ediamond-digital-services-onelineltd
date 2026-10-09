@@ -3,7 +3,7 @@ import { Download, Search } from 'lucide-react';
 import { listRequests, STATUSES } from '@/lib/store';
 import { SERVICES } from '@/lib/services';
 import { fmtDate, slug } from '@/lib/format';
-import './dashboard.css';
+import './admin.css';
 
 export const dynamic = 'force-dynamic';
 
