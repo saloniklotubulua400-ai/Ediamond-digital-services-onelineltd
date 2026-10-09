@@ -1,9 +1,7 @@
 import crypto from 'node:crypto';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { createAuthClient } from './supabase-auth';
 
-// ---------- Staff (admin) login: one shared password from .env.local ----------
 export const COOKIE = 'ediamond_admin';
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
@@ -48,21 +46,31 @@ export const cookieOptions = {
   maxAge: WEEK / 1000,
 };
 
-// ---------- Customer login: Supabase Authentication ----------
-// getClaims() checks the login token's signature. Returns { id, name, email, phone } or null.
+// ---------- Customer accounts ----------
+import { getUserById } from './users';
+
+export const USER_COOKIE = 'ediamond_user';
+const MONTH = 30 * 24 * 60 * 60 * 1000;
+export const userCookieOptions = { ...cookieOptions, maxAge: MONTH / 1000 };
+
+export function makeUserToken(userId) {
+  const body = `${userId}.${Date.now() + MONTH}`;
+  return `${body}.${sign(body)}`;
+}
+
+export function verifyUserToken(token) {
+  if (!token) return null;
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  const [id, exp, sig] = parts;
+  const a = Buffer.from(sig);
+  const b = Buffer.from(sign(`${id}.${exp}`));
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  return Number(exp) > Date.now() ? id : null;
+}
+
 export async function getCurrentUser() {
-  // Reading cookies makes Next.js render each page per visitor. Keep this OUTSIDE the try/catch below,
-  // otherwise the catch would swallow Next.js's own signal and pages could be shown as logged out.
-  await cookies();
-  try {
-    const supabase = await createAuthClient();
-    const { data, error } = await supabase.auth.getClaims();
-    const c = data?.claims;
-    if (error || !c?.sub) return null;
-    const meta = c.user_metadata || {};
-    return { id: c.sub, name: meta.name || c.email || 'Customer', email: c.email || '', phone: meta.phone || '' };
-  } catch (e) {
-    console.error('getCurrentUser:', e.message); // e.g. keys missing in .env.local: site still works, logged out
-    return null;
-  }
+  const jar = await cookies();
+  const id = verifyUserToken(jar.get(USER_COOKIE)?.value);
+  return id ? getUserById(id) : null;
 }

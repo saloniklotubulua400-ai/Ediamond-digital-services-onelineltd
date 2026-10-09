@@ -1,38 +1,53 @@
-# Ediamond website: switch from JSON files to Supabase
+# Ediamond website: customer login with Supabase Authentication
 
-This upgrade replaces `lib/store.js` and `lib/users.js` so requests and customer accounts
-are saved in a Supabase (PostgreSQL) database instead of `data/*.json`.
-No page or component changes. All function names and return shapes are the same.
+Customers now sign up and log in through Supabase Authentication. You see them in
+Supabase > Authentication > Users. Includes email verification and password reset.
+Staff login (/admin, one shared password) is unchanged.
 
-## Steps
+## 1. In Supabase (one time)
 
-1. Create a project at https://supabase.com (New project). Save the database password.
-2. Open **SQL Editor > New query**, paste the contents of `supabase/schema.sql`, press **Run**.
-3. Open **Settings > API Keys**. Copy the **Project URL** and a **Secret key** (`sb_secret_...`;
-   if none exists, create new API keys). Add to the project's `.env.local`:
+1. SQL Editor > New query > paste `supabase/schema-auth.sql` > Run.
+   (Unlinks old test requests from old accounts and links requests to Supabase users.)
+2. Settings > API Keys: copy the **Publishable key** (sb_publishable_...) and add to `.env.local`:
+       SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxxxxxxxxx
+3. Authentication > URL Configuration:
+   - Site URL: http://localhost:3000   (your real domain when you go live)
+   - Redirect URLs: add http://localhost:3000/**   (and https://yourdomain.com/** later)
+4. Authentication > Sign In / Providers > Email: keep "Confirm email" ON.
+   Set minimum password length to 8 (the site also requires 8).
+5. EMAIL SENDING (important):
+   - Supabase's built-in email service only sends to members of your Supabase team, and only
+     a few emails per hour. While testing, sign up with your own Supabase account email.
+   - Real customers need custom SMTP: Authentication > Emails > SMTP Settings, with a provider
+     such as Brevo, Resend, SendGrid or Mailgun. Do this before you go live.
+   - Quick testing trick: turn "Confirm email" OFF while testing; signup then logs in at once.
+     Turn it back ON before launch.
 
-       SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
-       SUPABASE_SECRET_KEY=sb_secret_xxxxxxxxxxxx
+## 2. In the project (one command, run inside the project folder)
 
-4. From inside the project folder (the one with package.json), run ONE command
-   (it backs up the old files, copies the new ones and installs the package):
+    mkdir -p backup-before-auth && cp lib/auth.js app/account/actions.js app/login/page.js components/CustomerAuthForms.js backup-before-auth/ && unzip -o ../ediamond-auth-upgrade.zip && npm install @supabase/ssr
 
-       mkdir -p lib/json-backup && cp lib/store.js lib/users.js lib/json-backup/ && unzip -o ../ediamond-supabase-upgrade.zip && npm install @supabase/supabase-js
+Then restart the server (Ctrl + C, then `npm run dev`).
 
-5. Optional, only if you already have real data in `data/*.json`:
+## 3. Test
 
-       node --env-file=.env.local scripts/migrate-json-to-supabase.mjs
+1. /signup: create an account. You see "Check your email".
+2. Open the email link. You land on /account, already logged in.
+3. Supabase > Authentication > Users: your customer is listed.
+4. Send a request while logged in. In Table Editor > requests, `user_id` equals that user's UID.
+5. Log out and log in. Try "Forgot your password?" on /login.
 
-   then run the SQL line it prints in the Supabase SQL Editor.
-6. `npm run dev`, send a test request, and check **Table Editor > requests** in Supabase.
+## 4. Clean up (after everything works)
 
-## Safety rules
+- In schema-auth.sql, step 3 (drop old users table) is commented out. Run it when ready.
+- Delete the unused files: `rm lib/users.js scripts/migrate-json-to-supabase.mjs`
 
-- The secret key bypasses all database security. Keep it only in `.env.local` and in your
-  hosting provider's environment settings. Never prefix it with `NEXT_PUBLIC_`, never commit it.
-- If it ever leaks, create a new secret key in Supabase and delete the old one.
-- Row Level Security is switched on for both tables with no public policies, so the public
-  (publishable) key cannot read any customer data.
-- Supabase returns at most 1000 rows per query. If you ever pass 1000 requests, add paging
-  to `listRequests()` in `lib/store.js`.
-- If you add a new status in `lib/store.js`, nothing changes in the database (status is plain text).
+## Notes
+
+- Existing test accounts in the old `users` table are not moved (their passwords cannot be copied). Sign up again.
+- The default Supabase email link works only in the same browser used to sign up. After you set up
+  custom SMTP you can paste `supabase/email-template-*.html` into Authentication > Emails > Templates
+  so links work on any device (for example signing up on a laptop, opening the email on a phone).
+- On the live server add `SITE_URL=https://yourdomain.com` to the environment settings.
+- Keys: SUPABASE_SECRET_KEY (saves requests) stays server-only. The publishable key is also used
+  only on the server here. Never put either in a NEXT_PUBLIC_ variable.

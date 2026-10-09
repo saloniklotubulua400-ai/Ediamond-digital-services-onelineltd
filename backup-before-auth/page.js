@@ -6,18 +6,13 @@ import { LoginForm } from '@/components/CustomerAuthForms';
 export const metadata = { title: 'Log in' };
 
 export default async function LoginPage({ searchParams }) {
-  const { next = '', error } = await searchParams;
+  const { next = '' } = await searchParams;
   if (await getCurrentUser()) redirect('/account');
   const q = next ? `?next=${encodeURIComponent(next)}` : '';
   return (
     <div className="auth-page">
       <h1>Log in</h1>
       <p className="lead">See the progress of your requests with Ediamond.</p>
-      {error === 'link' && (
-        <p className="alert" role="alert">
-          That email link is invalid or has expired. Log in below, or <Link href="/forgot-password">request a new reset link</Link>.
-        </p>
-      )}
       <LoginForm next={next} />
       <p className="auth-alt">New here? <Link href={`/signup${q}`}>Create an account</Link></p>
     </div>
